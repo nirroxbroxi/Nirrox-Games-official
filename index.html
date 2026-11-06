@@ -1,81 +1,24 @@
-<!DOCTYPE html>
-<html lang="fr" class="dark">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nirrox Games - Site Officiel</title>
+<!-- ... existing code ... -->
+<body class="min-h-screen flex flex-col pb-20 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
-          colors: {
-            brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
-          }
-        }
-      }
-    }
-  </script>
-
-  <style>
-    body {
-      background-color: #09090b;
-      color: #fafafa;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-    }
-    .glass-card {
-      background: rgba(18, 18, 22, 0.7);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .shadow-glow-indigo {
-      box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.4);
-    }
-  </style>
-</head>
-
-<body class="min-h-screen flex flex-col pb-20 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white" data-page="biblio">
-
-  <!-- En-tête / Header Navigation -->
+  <!-- En-tête / Header Simple (Sans onglets) -->
   <header class="sticky top-0 z-50 bg-black/60 backdrop-blur-xl border-b border-white/10">
     <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
       
       <!-- Logo -->
-      <div onclick="changerPage('biblio')" class="flex items-center gap-3 cursor-pointer group">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 flex items-center justify-center font-black text-white text-lg shadow-glow-indigo group-hover:scale-105 transition">
+      <div class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 flex items-center justify-center font-black text-white text-lg shadow-glow-indigo">
           N
         </div>
-        <span class="font-black text-lg tracking-tight text-white group-hover:text-indigo-400 transition">
+        <span class="font-black text-lg tracking-tight text-white">
           Nirrox Games
         </span>
       </div>
 
-      <!-- Navigation Bar -->
-      <nav class="flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/10">
-        <button id="nav-biblio" onclick="changerPage('biblio')" class="px-4 py-2 rounded-xl text-xs font-extrabold transition bg-white/10 text-white">
-          <i class="fa-solid fa-gamepad mr-1.5"></i> Bibliothèque
-        </button>
-        <button id="nav-apps" onclick="changerPage('apps')" class="px-4 py-2 rounded-xl text-xs font-extrabold text-slate-400 hover:text-white transition">
-          <i class="fa-solid fa-laptop-code mr-1.5"></i> Launcher Chromebook
-        </button>
-        <button id="nav-apropos" onclick="changerPage('apropos')" class="px-4 py-2 rounded-xl text-xs font-extrabold text-slate-400 hover:text-white transition">
-          <i class="fa-solid fa-circle-info mr-1.5"></i> À propos
-        </button>
-      </nav>
-
-      <!-- Badge Chromebook -->
-      <div class="hidden md:flex items-center gap-2 bg-indigo-950/60 border border-indigo-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold text-indigo-300">
+      <!-- Badge Info -->
+      <div class="flex items-center gap-2 bg-indigo-950/60 border border-indigo-500/30 px-3.5 py-1.5 rounded-full text-xs font-bold text-indigo-300">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        Optimisé ChromeOS
+        Plateforme de Jeux HTML5
       </div>
     </div>
   </header>
@@ -89,12 +32,12 @@
       <!-- Bannière Hero Simple -->
       <div class="glass-card rounded-3xl p-8 md:p-10 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-white/10">
         <div class="space-y-2 z-10 max-w-xl">
-          <span class="text-xs font-black uppercase tracking-widest text-indigo-400">Plateforme de Jeux HTML5</span>
+          <span class="text-xs font-black uppercase tracking-widest text-indigo-400">Bibliothèque</span>
           <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight leading-tight">
             Sélectionne un jeu et <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">joue immédiatement.</span>
           </h1>
           <p class="text-sm text-slate-400">
-            Tous les jeux HTML ajoutés dans le dossier <code class="text-indigo-300 bg-indigo-950/80 px-2 py-0.5 rounded font-mono">/Jeux/</code> s'affichent automatiquement ici.
+            Tous les fichiers du dossier <code class="text-indigo-300 bg-indigo-950/80 px-2 py-0.5 rounded font-mono">/Jeux/</code> s'affichent automatiquement ici.
           </p>
         </div>
 
@@ -123,17 +66,21 @@
 
   </main>
 
-  <!-- Modale d'Exécution de Jeu -->
-  <div id="modal-game" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-    <div class="glass-card rounded-3xl w-full max-w-5xl overflow-hidden border border-white/10 flex flex-col max-h-[90vh]">
-      <div class="p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
-        <h3 id="game-modal-title" class="font-black text-white text-lg">Jeu</h3>
-        <button onclick="fermerJeu()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
-          <i class="fa-solid fa-xmark"></i>
+  <!-- Modale d'Exécution de Jeu Plein Écran Ajusté -->
+  <div id="modal-game" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-2 md:p-6">
+    <div class="glass-card rounded-2xl md:rounded-3xl w-full h-full max-w-6xl max-h-[95vh] overflow-hidden border border-white/10 flex flex-col shadow-2xl">
+      <div class="px-5 py-3 border-b border-white/10 flex items-center justify-between bg-black/60">
+        <div class="flex items-center gap-3">
+          <span class="w-3 h-3 rounded-full bg-indigo-500"></span>
+          <h3 id="game-modal-title" class="font-black text-white text-base md:text-lg">Jeu</h3>
+        </div>
+        <button onclick="fermerJeu()" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-red-500/80 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
-      <div id="game-canvas-container" class="p-2 flex-1 bg-black min-h-[500px]">
-        <!-- Iframe dynamiquement injectée -->
+      <!-- Container Responsive Iframe -->
+      <div id="game-canvas-container" class="w-full flex-1 bg-black relative overflow-hidden">
+        <!-- Iframe dynamiquement injectée avec 100% hauteur/largeur -->
       </div>
     </div>
   </div>
@@ -170,10 +117,10 @@
           }
         }
       } catch (err) {
-        console.warn("Scan GitHub API en attente de configuration", err);
+        console.warn("Scan API GitHub", err);
       }
 
-      // Si le scan API n'a pas encore de réponse, on s'assure d'inclure ultra.html et le dossier local
+      // Inclus le fallback local ultra.html si aucun autre fichier scanné
       if (catalogueJeux.length === 0) {
         catalogueJeux = [
           {
@@ -194,21 +141,6 @@
       if (!container) return;
 
       if (countEl) countEl.textContent = `${catalogueJeux.length} jeu(x) disponible(s)`;
-
-      if (catalogueJeux.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full p-12 text-center glass-card rounded-3xl border border-dashed border-white/10 space-y-4">
-            <div class="w-16 h-16 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto text-2xl">
-              <i class="fa-solid fa-folder-open"></i>
-            </div>
-            <h3 class="text-xl font-bold text-white">Aucun fichier HTML trouvé dans /Jeux/</h3>
-            <p class="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-              Déposez vos jeux (ex: <code>ultra.html</code>) dans le dossier <strong>/Jeux/</strong> sur votre GitHub.
-            </p>
-          </div>
-        `;
-        return;
-      }
 
       const couleursBadge = [
         'from-indigo-600 to-indigo-900',
@@ -235,7 +167,7 @@
           </div>
           
           <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
-            <p class="text-xs text-slate-400">Lancement instantané du fichier <code class="text-indigo-300">${jeu.fichier}</code> dans le launcher.</p>
+            <p class="text-xs text-slate-400">Fichier : <code class="text-indigo-300">${jeu.fichier}</code></p>
 
             <button onclick="lancerFichierJeu('${jeu.fichier}', '${jeu.titre}')" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs transition uppercase tracking-wider flex items-center justify-center gap-2 shadow-glow-indigo">
               <i class="fa-solid fa-play"></i> Lancer le jeu
@@ -251,7 +183,8 @@
       if (title) title.textContent = titre;
 
       if (container) {
-        container.innerHTML = `<iframe src="${urlFichier}" class="w-full h-full min-h-[550px] rounded-2xl border-0" allow="fullscreen"></iframe>`;
+        // Redimensionnement fluide à 100% de la fenêtre modale
+        container.innerHTML = `<iframe src="${urlFichier}" class="absolute inset-0 w-full h-full border-0" allow="fullscreen; autoplay; gamepad"></iframe>`;
       }
 
       const modal = document.getElementById("modal-game");
