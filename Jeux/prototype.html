@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abyssal Knight - Niveaux Aléatoires & Danse de Joie</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #050508;
+            color: #e2e8f0;
+            overflow: hidden;
+            user-select: none;
+        }
+        .title-font {
+            font-family: 'Cinzel', serif;
+        }
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        @keyframes bounceAttention {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-8px) scale(1.03); }
+        }
+        .animate-attention {
+            animation: bounceAttention 1.2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-center items-center m-0 p-0 bg-neutral-950">
+
+    <div id="game-container" class="relative w-full max-w-5xl h-[660px] bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        
+        <div id="ui-bar" class="absolute top-4 left-4 z-30 flex flex-col space-y-2 pointer-events-none hidden bg-slate-900/80 backdrop-blur-md border border-slate-700/60 p-4 rounded-xl shadow-2xl text-slate-200 min-w-[285px]">
+            <div class="flex items-center justify-between space-x-2 text-[11px] font-semibold">
+                <span class="tracking-wide text-slate-400">VITAE</span>
+                <div class="w-36 h-3.5 bg-slate-950 border border-slate-700 relative rounded-full overflow-hidden">
+                    <div id="hp-bar" class="h-full bg-gradient-to-r from-teal-500 to-sky-400 w-full transition-all duration-300"></div>
+                </div>
+            </div>
+            
+            <div class="flex flex-col space-y-1 pt-1 border-t border-slate-800">
+                <div class="flex justify-between text-[10px] text-sky-400 font-medium">
+                    <span id="gun-cooldown-label">PISTOLET LOURD</span>
+                    <span id="gun-cooldown-text" class="text-sky-200 font-bold">19.0s</span>
+                </div>
+                <div class="w-full h-2.5 bg-slate-950 border border-slate-800 rounded-full overflow-hidden">
+                    <div id="gun-cd-bar" class="h-full bg-sky-400 w-full transition-all"></div>
+                </div>
+            </div>
+
+            <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-800">
+                <span id="death-counter">MORTS : 0</span>
+                <span id="score-counter">GÉOS : 0</span>
+            </div>
+        </div>
+
+        <div id="zone-label" class="absolute top-4 right-4 z-30 bg-slate-900/80 backdrop-blur-md border border-slate-700/60 px-4 py-2 rounded-xl text-[11px] text-slate-300 shadow-xl pointer-events-none hidden text-right title-font tracking-widest">
+            MONDE 1 - ÉTAGE 1
+        </div>
+
+        <!-- Canvas Principal -->
+        <canvas id="gameCanvas" class="w-full h-[500px] block z-10"></canvas>
+
+        <div id="debug-panel" class="absolute bottom-6 inset-x-0 z-40 bg-slate-900/95 border-t border-slate-700 p-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-300 shadow-2xl">
+            <div class="flex items-center space-x-2">
+                <span class="text-amber-400 font-bold title-font">PANEL DE TEST :</span>
+                <select id="jump-to-world-lvl" class="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white text-[10px]">
+                    <option value="1-1">Monde 1 (Joyeux) - Niv 1</option>
+                    <option value="1-3">Monde 1 - Boss Niveau 3</option>
+                    <option value="3-1">Monde 3 - Aléatoire Niv 1</option>
+                    <option value="8-1">Monde 8 (L'Enfer) - Niv 1</option>
+                    <option value="8-10">Monde 8 (L'Enfer) - Boss Final</option>
+                </select>
+                <button id="btn-tp" class="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 rounded text-white font-semibold cursor-pointer">TP Niveau</button>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <label class="flex items-center space-x-1 cursor-pointer">
+                    <input type="checkbox" id="chk-hitboxes" class="accent-sky-500">
+                    <span>Collisions (Hitboxes)</span>
+                </label>
+                <label class="flex items-center space-x-1 cursor-pointer">
+                    <input type="checkbox" id="chk-godmode" class="accent-sky-500">
+                    <span>Invincibilité</span>
+                </label>
+                <button id="btn-spawn-enemy" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 rounded text-white font-semibold cursor-pointer">+ Spawn Entité</button>
+                <button id="btn-reset-gun" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 rounded text-white font-semibold cursor-pointer">Reset Pistolet</button>
+            </div>
+        </div>
+
+        <div class="absolute bottom-1 right-3 z-30 pointer-events-none bg-slate-900/60 backdrop-blur border border-slate-800 px-2 py-0.5 rounded text-[8px] text-slate-400 tracking-widest shadow">
+            VERSION PROTOTYPE v2.11 - APPUYEZ SUR [ESC] POUR REVENIR AU MENU
+        </div>
+
+        <div id="main-menu" class="absolute inset-0 z-40 bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
+            <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px]"></div>
+            <div class="relative z-10 flex flex-col items-center max-w-2xl px-4">
+                
+                <div class="animate-attention mb-6 w-full bg-red-950/90 border-2 border-red-500/80 p-4 rounded-2xl shadow-[0_0_30px_rgba(239,68,68,0.4)]">
+                    <h2 class="text-xs md:text-sm text-amber-300 tracking-[0.2em] font-extrabold uppercase mb-1">
+                        ⚠️ AVERTISSEMENT CRITIQUE DE PROTOTYPE ⚠️
+                    </h2>
+                    <p class="text-xs md:text-sm text-red-200 font-bold leading-snug">
+                        CE LOGICIEL EST UN PROTOTYPE DE TEST INTERNE ET EN AUCUN CAS IL NE DOIT ÊTRE PUBLIÉ, COMMERCIALISÉ OU REDISTRIBUÉ.
+                    </p>
+                </div>
+
+                <h1 class="text-3xl md:text-4xl text-slate-100 mb-2 title-font font-bold tracking-wider drop-shadow-lg">ABYSSAL KNIGHT</h1>
+                <p class="text-xs text-slate-400 mb-6 leading-relaxed max-w-lg">
+                    Explorez des mondes générés aléatoirement, combattez d'étranges entités et célébrez vos victoires en musique. Touches : Flèches / WASD pour bouger, Espace pour double saut, Clic gauche ou X pour l'aiguillon, Double clic droit pour le pistolet (cooldown de 19s), et [ESC] pour revenir au menu.
+                </p>
+                <button id="start-game-btn" class="px-8 py-3.5 bg-sky-600 hover:bg-sky-500 active:scale-95 text-white text-xs rounded-xl border border-sky-400/40 shadow-2xl cursor-pointer title-font font-bold tracking-widest transition-all">
+                    JOUER AU PROTOTYPE
+                </button>
+            </div>
+        </div>
+
+        <!-- Écran de Mort -->
+        <div id="death-menu" class="absolute inset-0 z-50 bg-slate-950/90 flex flex-col items-center justify-center hidden text-center p-6 backdrop-blur-md">
+            <h2 id="death-msg" class="text-2xl text-sky-400 mb-4 title-font font-bold tracking-widest animate-pulse">VOTRE COQUILLE S'EST BRISÉE</h2>
+            <p id="troll-quote" class="text-xs text-slate-400 mb-8 leading-loose max-w-md">"Retour à la poussière..."</p>
+            <div class="flex items-center space-x-4">
+                <button id="respawn-btn" class="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-slate-100 text-xs rounded-xl border border-slate-700 cursor-pointer shadow-xl transition-all font-semibold">
+                    RENAÎTRE
+                </button>
+                <button id="menu-from-death-btn" class="px-6 py-3 bg-rose-950/80 hover:bg-rose-900 text-slate-200 text-xs rounded-xl border border-rose-700 cursor-pointer shadow-xl transition-all font-semibold">
+                    MENU PRINCIPAL [ESC]
+                </button>
+            </div>
+        </div>
+
+        <!-- Écran de Victoire (Danse de Joie) -->
+        <div id="win-menu" class="absolute inset-0 z-40 bg-slate-950/95 flex flex-col items-center justify-center hidden text-center p-6 backdrop-blur-md">
+            <h2 id="win-title" class="text-xl text-sky-300 mb-2 title-font font-bold animate-bounce">VICTOIRE - DANSE DE JOIE ! ✧</h2>
+            <p id="win-desc" class="text-xs text-slate-300 mb-6 leading-loose">Le chevalier célèbre sa réussite en musique...</p>
+            <button id="next-level-btn" class="px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs rounded-xl border border-sky-400/40 cursor-pointer title-font font-bold shadow-lg">
+                CONTINUER VERS LE NIVEAU SUIVANT
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const VIRTUAL_WIDTH = 640;
+        const VIRTUAL_HEIGHT = 330;
+        canvas.width = VIRTUAL_WIDTH;
+        canvas.height = VIRTUAL_HEIGHT;
+
+        let gameState = 'MENU';
+        let deathCount = 0;
+        let runeCount = 0;
+        let currentWorld = 1;
+        let currentLevel = 1;
+        let audioStarted = false;
+        let globalTime = 0;
+        let keyBuffer = '';
+
+        let playerHp = 4; 
+        let maxGunCooldown = 19 * 60; 
+        let gunCooldownTimer = 0; 
+        let bullets = [];
+
+        let showHitboxes = false;
+        let godMode = false;
+        let isVictoryDancing = false;
+        let victoryDanceTimer = 0;
+
+        const mainMenu = document.getElementById('main-menu');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const deathMenu = document.getElementById('death-menu');
+        const respawnBtn = document.getElementById('respawn-btn');
+        const menuFromDeathBtn = document.getElementById('menu-from-death-btn');
+        const winMenu = document.getElementById('win-menu');
+        const nextLevelBtn = document.getElementById('next-level-btn');
+        const uiBar = document.getElementById('ui-bar');
+        const hpBar = document.getElementById('hp-bar');
+        const deathCounter = document.getElementById('death-counter');
+        const scoreCounter = document.getElementById('score-counter');
+        const gunCooldownText = document.getElementById('gun-cooldown-text');
+        const gunCdBar = document.getElementById('gun-cd-bar');
+        const zoneLabel = document.getElementById('zone-label');
+        const trollQuote = document.getElementById('troll-quote');
+        const winTitle = document.getElementById('win-title');
+        const winDesc = document.getElementById('win-desc');
+
+        document.getElementById('chk-hitboxes').addEventListener('change', (e) => { showHitboxes = e.target.checked; });
+        document.getElementById('chk-godmode').addEventListener('change', (e) => { godMode = e.target.checked; });
+        document.getElementById('btn-reset-gun').addEventListener('click', () => { gunCooldownTimer = 0; });
+        document.getElementById('btn-spawn-enemy').addEventListener('click', () => {
+            enemies.push({
+                x: player.x + 80, y: player.y, width: 26, height: 26,
+                minX: player.x, maxX: player.x + 200, vx: 1.2, hp: 1, isMiniBoss: currentWorld >= 7,
+                soundTimer: 0
+            });
+        });
+        document.getElementById('btn-tp').addEventListener('click', () => {
+            let val = document.getElementById('jump-to-world-lvl').value.split('-');
+            loadLevel(parseInt(val[0]), parseInt(val[1]));
+        });
+
+        let sfxSynth, noiseSynth, bossSynth, victorySynth;
+        function initAudio() {
+            if (audioStarted) return;
+            audioStarted = true;
+            Tone.start();
+
+            sfxSynth = new Tone.Synth({
+                oscillator: { type: "triangle" },
+                envelope: { attack: 0.01, decay: 0.15, sustain: 0, release: 0.1 }
+            }).toDestination();
+            sfxSynth.volume.value = -8;
+
+            noiseSynth = new Tone.NoiseSynth({
+                noise: { type: "white" },
+                envelope: { attack: 0.005, decay: 0.2, sustain: 0, release: 0.1 }
+            }).toDestination();
+            noiseSynth.volume.value = -12;
+
+            bossSynth = new Tone.Synth({
+                oscillator: { type: "sawtooth" },
+                envelope: { attack: 0.1, decay: 0.8, sustain: 0.2, release: 0.5 }
+            }).toDestination();
+            bossSynth.volume.value = -6;
+
+            victorySynth = new Tone.Synth({
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.05, decay: 0.3, sustain: 0.1, release: 0.2 }
+            }).toDestination();
+            victorySynth.volume.value = -5;
+        }
+
+        function playJumpSound() { if (audioStarted && sfxSynth) sfxSynth.triggerAttackRelease("E4", "0.1s"); }
+        function playDoubleJumpSound() { if (audioStarted && sfxSynth) sfxSynth.triggerAttackRelease("B4", "0.15s"); }
+        function playSwordSound() { if (audioStarted && noiseSynth) noiseSynth.triggerAttackRelease("0.1s"); }
+        function playGunSound() { if (audioStarted && sfxSynth) sfxSynth.triggerAttackRelease("C1", "0.25s"); }
+        function playMonsterGrrSound() { if (audioStarted && sfxSynth) sfxSynth.triggerAttackRelease("G2", "0.18s"); }
+        function playBossRaaahSound() { if (audioStarted && bossSynth) bossSynth.triggerAttackRelease("A1", "0.6s"); }
+        function playHitSound() { if (audioStarted && sfxSynth) sfxSynth.triggerAttackRelease("F2", "0.15s"); }
+        function playDeathSound() { 
+            if (audioStarted && sfxSynth) {
+                try { sfxSynth.triggerAttackRelease("C2", "0.5s"); } catch (e) {}
+            }
+        }
+
+        function playVictoryMelody() {
+            if (!audioStarted || !victorySynth) return;
+            try {
+                const now = Tone.now() + 0.05;
+                victorySynth.triggerAttackRelease("C4", "0.2s", now);
+                victorySynth.triggerAttackRelease("E4", "0.2s", now + 0.25);
+                victorySynth.triggerAttackRelease("G4", "0.2s", now + 0.5);
+                victorySynth.triggerAttackRelease("C5", "0.4s", now + 0.75);
+            } catch (err) {}
+        }
+
+        function returnToMainMenu() {
+            gameState = 'MENU';
+            mainMenu.classList.remove('hidden');
+            deathMenu.classList.add('hidden');
+            winMenu.classList.add('hidden');
+            uiBar.classList.add('hidden');
+            zoneLabel.classList.add('hidden');
+        }
+
+        startGameBtn.addEventListener('click', () => {
+            initAudio();
+            mainMenu.classList.add('hidden');
+            gameState = 'PLAYING';
+            uiBar.classList.remove('hidden');
+            zoneLabel.classList.remove('hidden');
+            loadLevel(1, 1);
+        });
+
+        function damagePlayer(amount) {
+            if (godMode) return;
+            playerHp -= amount;
+            updateHpBar();
+            playHitSound();
+            if (playerHp <= 0) triggerDeath();
+        }
+
+        function updateHpBar() {
+            let percentage = (playerHp / 4) * 100;
+            if (percentage < 0) percentage = 0;
+            hpBar.style.width = `${percentage}%`;
+        }
+
+        function triggerDeath(reason) {
+            if (gameState !== 'PLAYING') return;
+            gameState = 'DEAD';
+            deathCount++;
+            deathCounter.textContent = `MORTS : ${deathCount}`;
+            playDeathSound();
+            trollQuote.textContent = `"${reason || "Votre coquille s'est brisée face aux périls..."}"`;
+            deathMenu.classList.remove('hidden');
+        }
+
+        respawnBtn.addEventListener('click', () => {
+            deathMenu.classList.add('hidden');
+            playerHp = 4;
+            updateHpBar();
+            loadLevel(currentWorld, currentLevel);
+            gameState = 'PLAYING';
+        });
+
+        menuFromDeathBtn.addEventListener('click', () => {
+            returnToMainMenu();
+        });
+
+        nextLevelBtn.addEventListener('click', () => {
+            winMenu.classList.add('hidden');
+            isVictoryDancing = false;
+            playerHp = 4;
+            updateHpBar();
+            if (currentLevel < 10) {
+                loadLevel(currentWorld, currentLevel + 1);
+                gameState = 'PLAYING';
+            } else {
+                if (currentWorld < 8) {
+                    currentWorld++;
+                    loadLevel(currentWorld, 1);
+                    gameState = 'PLAYING';
+                } else {
+                    currentWorld = 1;
+                    loadLevel(1, 1);
+                    gameState = 'PLAYING';
+                }
+            }
+        });
+
+        let player = {
+            x: 50, y: 160, width: 22, height: 32,
+            vx: 0, vy: 0, speed: 3.6, jumpForce: -8.6,
+            isGrounded: false, canDoubleJump: true,
+            facing: 'right', isAttacking: false, attackTimer: 0
+        };
+
+        function resetPlayer() {
+            player.x = 50;
+            player.y = 160;
+            player.vx = 0;
+            player.vy = 0;
+            player.canDoubleJump = true;
+            player.isAttacking = false;
+            isVictoryDancing = false;
+        }
+
+        const gravity = 0.38;
+
+        let platforms = [];
+        let hazards = [];
+        let signs = [];
+        let enemies = [];
+        let goalZone = { x: 1020, y: 150, width: 30, height: 70 };
+        let boss = null;
+        let inBossArena = false;
+        let arenaBounds = { minX: 0, maxX: VIRTUAL_WIDTH };
+
+        function loadLevel(world, lvl) {
+            currentWorld = world;
+            currentLevel = lvl;
+            resetPlayer();
+            bullets = [];
+            inBossArena = false;
+
+            let worldNames = [
+                "MONDE 1 - PRAIRIE CÉLESTE",
+                "MONDE 2 - FORÊT MYSTIQUE",
+                "MONDE 3 - COLLINES DE CRISTAL",
+                "MONDE 4 - GROTTES SOMBRE",
+                "MONDE 5 - CITADELLE ROUILLE",
+                "MONDE 6 - RIVAGES DU VIDE",
+                "MONDE 7 - COULOIRS MAUDITS",
+                "MONDE 8 - L'ENFER DES ABYSSES"
+            ];
+            zoneLabel.textContent = `${worldNames[world - 1] || "MONDE"} - ÉTAGE ${lvl}`;
+
+            platforms = [];
+            hazards = [];
+            signs = [];
+            enemies = [];
+            boss = null;
+
+            if ((lvl === 3 || lvl === 10) && (world >= 3)) {
+                inBossArena = true;
+                arenaBounds = { minX: 40, maxX: 600 };
+                player.x = 80;
+                player.y = 160;
+
+                platforms.push({ x: 0, y: 220, width: 640, height: 60, type: 'solid' });
+                let bossHp = world * 3;
+                boss = {
+                    x: 480, y: 120, width: 54, height: 84,
+                    vx: -0.6 - (world * 0.15), dir: -1,
+                    hp: bossHp, maxHp: bossHp, name: `GARDIEN SUPRÊME (M${world})`,
+                    roarTimer: 0
+                };
+                goalZone = { x: 580, y: 150, width: 30, height: 70 };
+                signs.push({ x: 70, y: 195, text: "ATTENTION : BOSS REDOUTABLE EN VUE !" });
+                playBossRaaahSound();
+            } else {
+                platforms.push({ x: 0, y: 220, width: 280, height: 60, type: 'solid' });
+
+                let curX = 310;
+                let platformCount = 6 + Math.floor(world / 2);
+                
+                for (let i = 0; i < platformCount; i++) {
+                    let randomWidthOffset = Math.floor(Math.random() * 50);
+                    let pWidth = 80 + randomWidthOffset;
+                    
+                    let randomHeightOffset = (Math.random() * 60) - 30;
+                    let pY = 130 + randomHeightOffset;
+                    if (pY > 190) pY = 180;
+                    if (pY < 80) pY = 90;
+
+                    let isFake = (world >= 3 && Math.random() < 0.35 && lvl > 1);
+                    platforms.push({ x: curX, y: pY, width: pWidth, height: 16, type: isFake ? 'fake' : 'solid', triggered: false });
+
+                    if (isFake || world >= 5) {
+                        hazards.push({ x: curX, y: 280, width: pWidth, height: 20 });
+                    }
+
+                    if (world >= 2 && Math.random() < 0.6) {
+                        let isMiniBoss = (world >= 7 && Math.random() < 0.4);
+                        enemies.push({
+                            x: curX + 10, y: pY - (isMiniBoss ? 36 : 24),
+                            width: isMiniBoss ? 34 : 24, height: isMiniBoss ? 36 : 24,
+                            minX: curX, maxX: curX + pWidth - 24,
+                            vx: 0.6 + (world * 0.1), hp: isMiniBoss ? 3 : 1,
+                            isMiniBoss: isMiniBoss, soundTimer: Math.random() * 100
+                        });
+                    }
+
+                    curX += pWidth + 50 + Math.floor(Math.random() * 40);
+                }
+
+                goalZone = { x: curX + 40, y: 150, width: 30, height: 70 };
+                platforms.push({ x: curX, y: 220, width: 300, height: 60, type: 'solid' });
+                signs.push({ x: 40, y: 195, text: `Monde ${world} - Étage ${lvl} (Généré Aléatoirement)` });
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Escape') {
+                returnToMainMenu();
+                return;
+            }
+
+            if (gameState !== 'PLAYING' || isVictoryDancing) return;
+
+            if (!isNaN(e.key)) {
+                keyBuffer += e.key;
+                if (keyBuffer.length > 5) keyBuffer = keyBuffer.slice(-5);
+                if (keyBuffer.includes('67')) {
+                    keyBuffer = '';
+                    loadLevel(8, 10);
+                    gameState = 'PLAYING';
+                    uiBar.classList.remove('hidden');
+                    zoneLabel.classList.remove('hidden');
+                    mainMenu.classList.add('hidden');
+                    deathMenu.classList.add('hidden');
+                    winMenu.classList.add('hidden');
+                }
+            }
+
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+                player.vx = -player.speed;
+                player.facing = 'left';
+            }
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+                player.vx = player.speed;
+                player.facing = 'right';
+            }
+            if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') {
+                if (player.isGrounded) {
+                    player.vy = player.jumpForce;
+                    player.isGrounded = false;
+                    player.canDoubleJump = true;
+                    playJumpSound();
+                } else if (player.canDoubleJump) {
+                    player.vy = player.jumpForce * 0.95;
+                    player.canDoubleJump = false;
+                    playDoubleJumpSound();
+                }
+                e.preventDefault();
+            }
+            if (e.code === 'KeyX' || e.code === 'KeyJ') {
+                triggerAttack();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if ((e.code === 'ArrowLeft' || e.code === 'KeyA') && player.vx < 0) player.vx = 0;
+            if ((e.code === 'ArrowRight' || e.code === 'KeyD') && player.vx > 0) player.vx = 0;
+        });
+
+        canvas.addEventListener('mousedown', () => {
+            if (gameState === 'PLAYING' && !isVictoryDancing) triggerAttack();
+        });
+
+        let lastRightClickTime = 0;
+        window.addEventListener('contextmenu', (e) => {
+            e.preventDefault(); 
+            if (gameState !== 'PLAYING' || isVictoryDancing) return;
+            let now = Date.now();
+            if (now - lastRightClickTime < 400) {
+                if (gunCooldownTimer <= 0) {
+                    fireGun();
+                    gunCooldownTimer = maxGunCooldown;
+                }
+            }
+            lastRightClickTime = now;
+        });
+
+        function fireGun() {
+            playGunSound();
+            bullets.push({
+                x: player.facing === 'right' ? player.x + player.width : player.x - 16,
+                y: player.y + 14,
+                vx: player.facing === 'right' ? 9 : -9,
+                width: 16,
+                height: 5
+            });
+        }
+
+        function triggerAttack() {
+            if (player.isAttacking) return;
+            player.isAttacking = true;
+            player.attackTimer = 12;
+            playSwordSound();
+
+            let attackBox = {
+                x: player.facing === 'right' ? player.x + player.width : player.x - 28,
+                y: player.y,
+                width: 28,
+                height: player.height
+            };
+
+            enemies.forEach((en, idx) => {
+                if (attackBox.x < en.x + en.width && attackBox.x + attackBox.width > en.x &&
+                    attackBox.y < en.y + en.height && attackBox.y + attackBox.height > en.y) {
+                    en.hp--;
+                    playHitSound();
+                    if (en.hp <= 0) {
+                        enemies.splice(idx, 1);
+                        runeCount += en.isMiniBoss ? 300 : 100;
+                        scoreCounter.textContent = `GÉOS : ${runeCount}`;
+                    }
+                }
+            });
+
+            if (boss) {
+                if (attackBox.x < boss.x + boss.width && attackBox.x + attackBox.width > boss.x &&
+                    attackBox.y < boss.y + boss.height && attackBox.y + attackBox.height > boss.y) {
+                    boss.hp--;
+                    playHitSound();
+                    playBossRaaahSound();
+                    if (boss.hp <= 0) {
+                        boss = null;
+                        runeCount += 2000;
+                        scoreCounter.textContent = `GÉOS : ${runeCount}`;
+                    }
+                }
+            }
+        }
+
+        function updateGame() {
+            if (gameState !== 'PLAYING') return;
+
+            globalTime += 0.05;
+
+            if (isVictoryDancing) {
+                victoryDanceTimer++;
+                player.vx = 0;
+                player.vy = 0;
+                return;
+            }
+
+            player.vy += gravity;
+
+            if (gunCooldownTimer > 0) {
+                gunCooldownTimer--;
+                let secLeft = (gunCooldownTimer / 60).toFixed(1);
+                gunCooldownText.textContent = `${secLeft}s`;
+                let percentage = (gunCooldownTimer / maxGunCooldown) * 100;
+                gunCdBar.style.width = `${percentage}%`;
+                gunCdBar.className = "h-full bg-slate-600 transition-all";
+            } else {
+                gunCooldownText.textContent = `PRÊT`;
+                gunCdBar.style.width = `100%`;
+                gunCdBar.className = "h-full bg-sky-400 transition-all animate-pulse";
+            }
+
+            bullets.forEach((b, bIdx) => {
+                b.x += b.vx;
+
+                enemies.forEach((en, eIdx) => {
+                    if (b.x < en.x + en.width && b.x + b.width > en.x && b.y < en.y + en.height && b.y + b.height > en.y) {
+                        en.hp -= 2;
+                        bullets.splice(bIdx, 1);
+                        playHitSound();
+                        if (en.hp <= 0) {
+                            enemies.splice(eIdx, 1);
+                            runeCount += 150;
+                            scoreCounter.textContent = `GÉOS : ${runeCount}`;
+                        }
+                    }
+                });
+
+                if (boss) {
+                    if (b.x < boss.x + boss.width && b.x + b.width > boss.x && b.y < boss.y + boss.height && b.y + b.height > boss.y) {
+                        boss.hp -= 3;
+                        bullets.splice(bIdx, 1);
+                        playHitSound();
+                        playBossRaaahSound();
+                        if (boss.hp <= 0) {
+                            boss = null;
+                            runeCount += 3000;
+                            scoreCounter.textContent = `GÉOS : ${runeCount}`;
+                        }
+                    }
+                }
+            });
+
+            if (player.isAttacking) {
+                player.attackTimer--;
+                if (player.attackTimer <= 0) player.isAttacking = false;
+            }
+
+            player.x += player.vx;
+
+            if (inBossArena) {
+                if (player.x < arenaBounds.minX) player.x = arenaBounds.minX;
+                if (player.x + player.width > arenaBounds.maxX) player.x = arenaBounds.maxX - player.width;
+            }
+
+            platforms.forEach(p => {
+                if (p.type === 'fake' && p.triggered) return;
+                if (player.x < p.x + p.width && player.x + player.width > p.x && player.y < p.y + p.height && player.y + player.height > p.y) {
+                    if (player.vx > 0) player.x = p.x - player.width;
+                    if (player.vx < 0) player.x = p.x + player.width;
+                }
+            });
+
+            player.y += player.vy;
+            player.isGrounded = false;
+            platforms.forEach(p => {
+                if (p.type === 'fake' && p.triggered) return;
+                if (player.x < p.x + p.width && player.x + player.width > p.x && player.y < p.y + p.height && player.y + player.height > p.y) {
+                    if (player.vy > 0) {
+                        player.y = p.y - player.height;
+                        player.vy = 0;
+                        player.isGrounded = true;
+                        player.canDoubleJump = true;
+                    } else if (player.vy < 0) {
+                        player.y = p.y + p.height;
+                        player.vy = 0;
+                    }
+                }
+            });
+
+            platforms.forEach(p => {
+                if (p.type === 'fake' && !p.triggered) {
+                    if (player.x < p.x + p.width && player.x + player.width > p.x && player.y + player.height >= p.y && player.y + player.height <= p.y + 15 && player.vy >= 0) {
+                        p.triggered = true;
+                    }
+                }
+            });
+
+            enemies.forEach((en) => {
+                en.x += en.vx;
+                if (en.x <= en.minX || en.x >= en.maxX) en.vx *= -1;
+
+                en.soundTimer++;
+                if (en.soundTimer > 180) {
+                    en.soundTimer = 0;
+                    playMonsterGrrSound();
+                }
+
+                if (player.x < en.x + en.width && player.x + player.width > en.x && player.y < en.y + en.height && player.y + player.height > en.y) {
+                    damagePlayer(en.isMiniBoss ? 2 : 1);
+                }
+            });
+
+            if (boss) {
+                boss.x += boss.vx;
+                if (boss.x <= 350 || boss.x >= 550) boss.vx *= -1;
+
+                boss.roarTimer++;
+                if (boss.roarTimer > 240) {
+                    boss.roarTimer = 0;
+                    playBossRaaahSound();
+                }
+
+                if (player.x < boss.x + boss.width && player.x + player.width > boss.x && player.y < boss.y + boss.height && player.y + boss.height > boss.y) {
+                    damagePlayer(2); 
+                    player.vx = -6;
+                }
+            }
+
+            hazards.forEach(h => {
+                if (player.x < h.x + h.width && player.x + player.width > h.x && player.y < h.y + h.height && player.y + h.height > h.y) {
+                    damagePlayer(4);
+                }
+            });
+
+            if (player.y > VIRTUAL_HEIGHT + 30) {
+                damagePlayer(4);
+            }
+
+            if (!boss && player.x < goalZone.x + goalZone.width && player.x + player.width > goalZone.x && player.y < goalZone.y + goalZone.height && player.y + player.height > goalZone.y) {
+                if (!isVictoryDancing) {
+                    isVictoryDancing = true;
+                    victoryDanceTimer = 0;
+                    playVictoryMelody();
+                    setTimeout(() => {
+                        winMenu.classList.remove('hidden');
+                        if (currentLevel < 10) {
+                            winTitle.textContent = `MONDE ${currentWorld} - ÉTAGE ${currentLevel} TERMINÉ ✧`;
+                            winDesc.textContent = `Progression vers l'étage suivant...`;
+                            nextLevelBtn.textContent = "CONTINUER";
+                        } else {
+                            if (currentWorld < 8) {
+                                winTitle.textContent = `MONDE ${currentWorld} CONQUIS 👑`;
+                                winDesc.textContent = `Déblocage du Monde ${currentWorld + 1} !`;
+                                nextLevelBtn.textContent = `MONDE ${currentWorld + 1}`;
+                            } else {
+                                winTitle.textContent = "VOUS AVEZ TRIOMPHÉ DE L'ENFER 🌟";
+                                winDesc.textContent = "Le royaume est sauvé.";
+                                nextLevelBtn.textContent = "RECOMMENCER";
+                            }
+                        }
+                    }, 1200);
+                }
+            }
+        }
+
+        function drawGame() {
+            let cameraX = inBossArena ? 0 : player.x - VIRTUAL_WIDTH / 3;
+            if (cameraX < 0) cameraX = 0;
+            if (cameraX > goalZone.x - 300) cameraX = goalZone.x - 300;
+
+            ctx.save();
+            ctx.translate(-cameraX, 0);
+
+            let isJoyful = (currentWorld === 1);
+            let isHell = (currentWorld >= 7);
+
+            let bgGrad = ctx.createLinearGradient(cameraX, 0, cameraX, VIRTUAL_HEIGHT);
+            if (isJoyful) {
+                bgGrad.addColorStop(0, '#38bdf8');
+                bgGrad.addColorStop(1, '#e0f2fe');
+            } else if (isHell) {
+                bgGrad.addColorStop(0, '#450a0a');
+                bgGrad.addColorStop(1, '#180202');
+            } else {
+                bgGrad.addColorStop(0, '#0f172a');
+                bgGrad.addColorStop(1, '#1e1b4b');
+            }
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(cameraX, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+            if (isJoyful) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.beginPath();
+                let cloudOffset = (globalTime * 10) % (VIRTUAL_WIDTH + 200) - 100;
+                ctx.arc(cameraX + cloudOffset + 100, 50, 25, 0, Math.PI * 2);
+                ctx.arc(cameraX + cloudOffset + 125, 45, 30, 0, Math.PI * 2);
+                ctx.arc(cameraX + cloudOffset + 150, 55, 20, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            if (inBossArena) {
+                ctx.fillStyle = isHell ? '#7f1d1d' : '#1e293b';
+                ctx.fillRect(35, 100, 8, 120);
+                ctx.fillRect(597, 100, 8, 120);
+            }
+
+            signs.forEach(sign => {
+                ctx.fillStyle = isJoyful ? '#166534' : '#1e293b';
+                ctx.fillRect(sign.x, sign.y + 10, 4, 18);
+                ctx.fillStyle = isJoyful ? '#14532d' : '#94a3b8';
+                ctx.font = '9px "Plus Jakarta Sans"';
+                ctx.fillText(sign.text, sign.x - 25, sign.y);
+            });
+
+            platforms.forEach(p => {
+                if (p.type === 'fake' && p.triggered) return;
+                
+                if (isJoyful) {
+                    ctx.fillStyle = '#15803d';
+                    ctx.fillRect(p.x, p.y, p.width, p.height);
+                    ctx.fillStyle = '#86efac';
+                    ctx.fillRect(p.x, p.y, p.width, 5);
+                } else if (isHell) {
+                    ctx.fillStyle = '#7f1d1d';
+                    ctx.fillRect(p.x, p.y + 4, p.width, p.height - 4);
+                    ctx.fillStyle = '#f87171';
+                    ctx.fillRect(p.x, p.y, p.width, 6);
+                } else {
+                    ctx.fillStyle = p.type === 'fake' ? '#331e1e' : '#0f172a';
+                    ctx.fillRect(p.x, p.y + 4, p.width, p.height - 4);
+                    ctx.fillStyle = p.type === 'fake' ? '#7f1d1d' : '#334155';
+                    ctx.fillRect(p.x, p.y, p.width, 6);
+                }
+
+                if (showHitboxes) {
+                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.8)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(p.x, p.y, p.width, p.height);
+                }
+            });
+
+            hazards.forEach(h => {
+                ctx.fillStyle = isHell ? '#dc2626' : '#f97316';
+                ctx.fillRect(h.x, h.y, h.width, h.height);
+            });
+
+            if (!boss) {
+                ctx.fillStyle = isJoyful ? '#facc15' : '#38bdf8';
+                ctx.fillRect(goalZone.x + 10, goalZone.y, 10, goalZone.height);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(goalZone.x + 4, goalZone.y + 15, 22, 4);
+            }
+
+            enemies.forEach(en => {
+                ctx.fillStyle = en.isMiniBoss ? '#581c87' : '#31101d';
+                ctx.fillRect(en.x, en.y, en.width, en.height);
+                ctx.fillStyle = '#f43f5e';
+                ctx.fillRect(en.x + 4, en.y + 6, 4, 4);
+                ctx.fillRect(en.x + en.width - 8, en.y + 6, 4, 4);
+
+                if (showHitboxes) {
+                    ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
+                    ctx.strokeRect(en.x, en.y, en.width, en.height);
+                }
+            });
+
+            if (boss) {
+                ctx.fillStyle = '#1e1b4b';
+                ctx.fillRect(boss.x, boss.y, boss.width, boss.height);
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(boss.x + 10, boss.y + 10, 34, 26);
+                ctx.fillRect(boss.x + 4, boss.y - 12, 14, 22);
+                ctx.fillRect(boss.x + 36, boss.y - 12, 14, 22);
+                ctx.fillStyle = '#f43f5e';
+                ctx.fillRect(boss.x + 14, boss.y + 18, 6, 8);
+                ctx.fillRect(boss.x + 34, boss.y + 18, 6, 8);
+                
+                ctx.fillStyle = '#020617';
+                ctx.fillRect(boss.x - 10, boss.y - 28, 74, 6);
+                ctx.fillStyle = '#f43f5e';
+                ctx.fillRect(boss.x - 10, boss.y - 28, (boss.hp / boss.maxHp) * 74, 6);
+
+                if (showHitboxes) {
+                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.9)';
+                    ctx.strokeRect(boss.x, boss.y, boss.width, boss.height);
+                }
+            }
+
+            ctx.fillStyle = '#38bdf8';
+            bullets.forEach(b => {
+                ctx.fillRect(b.x, b.y, b.width, b.height);
+            });
+
+            let px = player.x;
+            let py = player.y;
+
+            if (isVictoryDancing) {
+                py -= Math.abs(Math.sin(victoryDanceTimer * 0.3)) * 14;
+            }
+
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(px + 4, py + 12, 14, 18);
+
+            ctx.fillStyle = '#334155';
+            if (player.facing === 'right') {
+                ctx.fillRect(px + 14, py + 16, 8, 4);
+            } else {
+                ctx.fillRect(px, py + 16, 8, 4);
+            }
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(px + 3, py + 2, 16, 14);
+            ctx.fillRect(px - 2, py - 6, 6, 12);
+            ctx.fillRect(px + 18, py - 6, 6, 12);
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(px + 6, py + 6, 4, 6);
+            ctx.fillRect(px + 12, py + 6, 4, 6);
+
+            if (player.isAttacking || isVictoryDancing) {
+                ctx.fillStyle = '#e2e8f0';
+                if (isVictoryDancing && Math.floor(victoryDanceTimer / 5) % 2 === 0) {
+                    ctx.fillRect(px + player.width, py + 4, 26, 5);
+                } else if (player.facing === 'right') {
+                    ctx.fillRect(px + player.width, py + 10, 26, 5);
+                } else {
+                    ctx.fillRect(px - 26, py + 10, 26, 5);
+                }
+            }
+
+            if (showHitboxes) {
+                ctx.strokeStyle = 'rgba(34, 197, 94, 0.9)';
+                ctx.strokeRect(player.x, player.y, player.width, player.height);
+            }
+
+            ctx.restore();
+        }
+
+        function loop() {
+            requestAnimationFrame(loop);
+            ctx.clearRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+            if (gameState === 'PLAYING') {
+                updateGame();
+                drawGame();
+            } else if (gameState === 'DEAD') {
+                drawGame();
+            }
+        }
+
+        loop();
+    </script>
+
+</body>
+</html>

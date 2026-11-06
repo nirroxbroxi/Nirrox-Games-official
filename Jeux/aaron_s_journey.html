@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Voyage d'Aaron - Édition NES Pixel Art</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press+Start+2P', monospace;
+            background-color: #050505;
+            color: #ffffff;
+            overflow: hidden;
+            user-select: none;
+        }
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-center items-center m-0 p-0 bg-neutral-950">
+
+    <!-- Container du Jeu 16:9 Rétro -->
+    <div id="game-container" class="relative w-full max-w-5xl h-[620px] bg-neutral-900 border-4 border-emerald-600 rounded-lg shadow-2xl overflow-hidden flex flex-col">
+        
+        <!-- Barre UI supérieure -->
+        <div id="ui-bar" class="absolute top-0 left-0 w-full p-4 flex justify-between items-center z-25 pointer-events-none hidden">
+            <div class="bg-black/80 border-2 border-emerald-500 px-4 py-2 rounded flex items-center space-x-4 text-[10px]">
+                <span class="text-emerald-400">NIVEAU 1 : FORÊT NES</span>
+                <span class="text-neutral-500">|</span>
+                <span id="score-display" class="text-cyan-400">CRISTAUX : 0/4</span>
+            </div>
+            <div class="flex items-center space-x-3 pointer-events-auto">
+                <button id="settings-open-btn" class="bg-black/80 hover:bg-neutral-800 border-2 border-neutral-600 px-3 py-2 rounded text-[10px] text-white cursor-pointer">
+                    ⚙️ OPTIONS
+                </button>
+            </div>
+        </div>
+
+        <!-- Canvas Principal -->
+        <canvas id="gameCanvas" class="w-full h-full block z-10"></canvas>
+
+        <!-- Menu Principal -->
+        <div id="main-menu" class="absolute inset-0 z-40 bg-neutral-950 flex flex-col items-center justify-center p-8 text-center">
+            <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#10b981_2px,transparent_2px)] [background-size:16px_16px]"></div>
+            <div class="relative z-10 flex flex-col items-center max-w-lg">
+                <span class="text-[10px] text-emerald-400 tracking-widest mb-4">✦ ÉDITION RÉTRO NES ✦</span>
+                <h1 class="text-xl md:text-2xl text-white mb-6 leading-relaxed">LE VOYAGE D'AARON</h1>
+                <p class="text-[10px] text-neutral-400 mb-8 leading-loose">
+                    Explorez une forêt de pixels magique sans aucun danger. Écoutez la douce musique lofi et trouvez le portail secret !
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                    <button id="start-game-btn" class="px-6 py-4 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-[10px] rounded border-2 border-emerald-400 shadow-lg cursor-pointer">
+                        ▶ JOUER
+                    </button>
+                    <button id="menu-settings-btn" class="px-6 py-4 bg-neutral-800 hover:bg-neutral-700 active:scale-95 text-white text-[10px] rounded border-2 border-neutral-600 cursor-pointer">
+                        ⚙️ PARAMÈTRES
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Paramètres -->
+        <div id="settings-modal" class="absolute inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-6 hidden">
+            <div class="bg-neutral-900 border-2 border-emerald-500 p-6 rounded shadow-2xl w-full max-w-md flex flex-col space-y-6 text-[10px]">
+                <div class="flex justify-between items-center border-b border-neutral-800 pb-3">
+                    <span class="text-emerald-400">PARAMÈTRES</span>
+                    <button id="close-settings-btn" class="text-neutral-400 hover:text-white cursor-pointer">✕</button>
+                </div>
+
+                <div class="flex flex-col space-y-3">
+                    <label class="text-neutral-300 flex justify-between">
+                        <span>Volume Musique</span>
+                        <span id="vol-val" class="text-emerald-400">70%</span>
+                    </label>
+                    <input id="volume-slider" type="range" min="0" max="100" value="70" class="w-full accent-emerald-500 cursor-pointer">
+                </div>
+
+                <button id="save-settings-btn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded border border-emerald-400 cursor-pointer">
+                    REPRENDRE
+                </button>
+            </div>
+        </div>
+
+        <!-- Cinématique / Dialogue -->
+        <div id="overlay-screen" class="absolute inset-0 z-30 flex flex-col justify-end p-6 bg-gradient-to-t from-neutral-950 via-transparent to-transparent hidden">
+            <div id="dialog-box" class="bg-neutral-900 border-2 border-emerald-500 p-6 rounded shadow-2xl flex flex-col justify-between text-[10px]">
+                <div class="flex items-center justify-between mb-3">
+                    <span id="speaker-name" class="text-emerald-400">AARON</span>
+                    <span class="text-neutral-500">Appuyez sur ENTRÉE</span>
+                </div>
+                <p id="dialog-text" class="text-neutral-200 mb-6 leading-loose">
+                    Minuit sonne. Qu'est-ce que ce portail lumineux sur mon bureau ?
+                </p>
+                <div class="flex justify-end">
+                    <button id="action-btn" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded border border-emerald-400 cursor-pointer">
+                        Examiner
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Écran Victoire -->
+        <div id="end-menu" class="absolute inset-0 z-40 bg-neutral-950 flex flex-col items-center justify-center hidden text-center p-6">
+            <h2 class="text-sm text-emerald-400 mb-4">NIVEAU TERMINÉ ! 🎉</h2>
+            <p class="text-[10px] text-neutral-300 mb-8 leading-loose">Aaron a exploré toute la forêt pixelisée avec succès !</p>
+            <button id="retry-btn" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] rounded border border-emerald-400 cursor-pointer">
+                🔄 REJOUER
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const VIRTUAL_WIDTH = 640;
+        const VIRTUAL_HEIGHT = 360;
+        canvas.width = VIRTUAL_WIDTH;
+        canvas.height = VIRTUAL_HEIGHT;
+
+        let gameState = 'MENU';
+        let cinematicStep = 0;
+        let audioStarted = false;
+
+        const mainMenu = document.getElementById('main-menu');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const menuSettingsBtn = document.getElementById('menu-settings-btn');
+        const settingsOpenBtn = document.getElementById('settings-open-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettingsBtn = document.getElementById('close-settings-btn');
+        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volVal = document.getElementById('vol-val');
+
+        const overlayScreen = document.getElementById('overlay-screen');
+        const uiBar = document.getElementById('ui-bar');
+        const scoreDisplay = document.getElementById('score-display');
+        const endMenu = document.getElementById('end-menu');
+        const retryBtn = document.getElementById('retry-btn');
+        const speakerName = document.getElementById('speaker-name');
+        const dialogText = document.getElementById('dialog-text');
+        const actionBtn = document.getElementById('action-btn');
+
+        // Audio Tone.js
+        let synth, melodyLoop;
+        function initAudio() {
+            if (audioStarted) return;
+            audioStarted = true;
+            Tone.start();
+            
+            const lofiFilter = new Tone.Filter(2000, "lowpass").toDestination();
+            const reverb = new Tone.Reverb({ roomSize: 0.8, decay: 4.0 }).connect(lofiFilter);
+            reverb.generate();
+
+            synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "square" },
+                envelope: { attack: 0.1, decay: 0.5, sustain: 0.3, release: 1.0 }
+            }).connect(reverb);
+            synth.volume.value = -6;
+
+            const chords = [
+                ["C3", "E3", "G3"],
+                ["A2", "C3", "E3"],
+                ["F2", "A2", "C3"],
+                ["G2", "B2", "D3"]
+            ];
+
+            let chordIndex = 0;
+            Tone.Transport.bpm.value = 75;
+            
+            melodyLoop = new Tone.Loop(time => {
+                synth.triggerAttackRelease(chords[chordIndex], "2n", time);
+                chordIndex = (chordIndex + 1) % chords.length;
+            }, "2n").start(0);
+
+            Tone.Transport.start();
+        }
+
+        volumeSlider.addEventListener('input', (e) => {
+            let val = e.target.value;
+            volVal.textContent = val + '%';
+            if (synth) {
+                let db = val === '0' ? -100 : (val - 100) / 3;
+                synth.volume.value = db;
+            }
+        });
+
+        menuSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+        settingsOpenBtn.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+        closeSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+        saveSettingsBtn.addEventListener('click', () => settingsModal.classList.add('hidden'));
+
+        startGameBtn.addEventListener('click', () => {
+            initAudio();
+            mainMenu.classList.add('hidden');
+            gameState = 'CINEMATIC';
+            overlayScreen.classList.remove('hidden');
+        });
+
+        const dialogues = [
+            { speaker: "AARON", text: "Minuit passé dans ma chambre... D'où vient ce portail étrange sur mon bureau ?" },
+            { speaker: "SYSTÈME", text: "✨ TRANSFERT EN COURS VERS LE MONDE PIXEL RÉTRO..." },
+            { speaker: "NARRATEUR", text: "Promenez-vous tranquillement dans la forêt NES et récupérez tous les cristaux." }
+        ];
+
+        function nextDialogue() {
+            cinematicStep++;
+            if (cinematicStep < dialogues.length) {
+                speakerName.textContent = dialogues[cinematicStep].speaker;
+                dialogText.textContent = dialogues[cinematicStep].text;
+                if (cinematicStep === dialogues.length - 1) actionBtn.textContent = "Entrer !";
+            } else {
+                overlayScreen.classList.add('hidden');
+                gameState = 'PLAYING';
+                uiBar.classList.remove('hidden');
+            }
+        }
+
+        actionBtn.addEventListener('click', nextDialogue);
+
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Enter' && gameState === 'CINEMATIC') nextDialogue();
+        });
+
+        // Contrôles Clavier
+        const keys = { left: false, right: false, jump: false };
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+            if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') {
+                keys.jump = true;
+                e.preventDefault();
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+        });
+
+        retryBtn.addEventListener('click', () => {
+            endMenu.classList.add('hidden');
+            player.x = 40;
+            player.y = 200;
+            player.vx = 0;
+            player.vy = 0;
+            portalExit.active = false;
+            crystals.forEach(c => c.collected = false);
+            gameState = 'PLAYING';
+        });
+
+        // Joueur Aaron (Pixel Art Net)
+        let player = {
+            x: 40,
+            y: 200,
+            width: 20,
+            height: 28,
+            vx: 0,
+            vy: 0,
+            speed: 3,
+            jumpForce: -8.5,
+            isGrounded: false
+        };
+
+        const gravity = 0.45;
+
+        // Plateformes strictes (pas de traversée)
+        const platforms = [
+            { x: 0, y: 320, width: 2200, height: 40 }, // Sol principal
+            { x: 220, y: 240, width: 120, height: 16 },
+            { x: 400, y: 180, width: 140, height: 16 },
+            { x: 650, y: 220, width: 160, height: 16 },
+            { x: 900, y: 160, width: 140, height: 16 },
+            { x: 1150, y: 230, width: 150, height: 16 },
+            { x: 1450, y: 180, width: 160, height: 16 }
+        ];
+
+        let crystals = [
+            { x: 270, y: 200, radius: 8, collected: false },
+            { x: 460, y: 140, radius: 8, collected: false },
+            { x: 970, y: 120, radius: 8, collected: false },
+            { x: 1520, y: 140, radius: 8, collected: false }
+        ];
+
+        let portalExit = { x: 1850, y: 240, width: 32, height: 80, active: false };
+
+        function updateGame() {
+            if (gameState !== 'PLAYING') return;
+
+            player.vx = 0;
+            if (keys.left) player.vx = -player.speed;
+            if (keys.right) player.vx = player.speed;
+
+            if (keys.jump && player.isGrounded) {
+                player.vy = player.jumpForce;
+                player.isGrounded = false;
+            }
+            keys.jump = false;
+
+            player.vy += gravity;
+
+            // Déplacement X et Collision
+            player.x += player.vx;
+            platforms.forEach(p => {
+                if (
+                    player.x < p.x + p.width &&
+                    player.x + player.width > p.x &&
+                    player.y < p.y + p.height &&
+                    player.y + player.height > p.y
+                ) {
+                    if (player.vx > 0) player.x = p.x - player.width;
+                    if (player.vx < 0) player.x = p.x + p.width;
+                }
+            });
+
+            // Déplacement Y et Collision stricte
+            player.y += player.vy;
+            player.isGrounded = false;
+            platforms.forEach(p => {
+                if (
+                    player.x < p.x + p.width &&
+                    player.x + player.width > p.x &&
+                    player.y < p.y + p.height &&
+                    player.y + player.height > p.y
+                ) {
+                    if (player.vy > 0) { // Tombe sur la plateforme
+                        player.y = p.y - player.height;
+                        player.vy = 0;
+                        player.isGrounded = true;
+                    } else if (player.vy < 0) { // Tape par en dessous
+                        player.y = p.y + p.height;
+                        player.vy = 0;
+                    }
+                }
+            });
+
+            // Sécurité chute
+            if (player.y > VIRTUAL_HEIGHT + 50) {
+                player.x = 40;
+                player.y = 200;
+                player.vy = 0;
+            }
+
+            // Cristaux
+            let collectedCount = 0;
+            crystals.forEach(c => {
+                if (!c.collected) {
+                    let dx = (player.x + player.width / 2) - c.x;
+                    let dy = (player.y + player.height / 2) - c.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < c.radius + 10) {
+                        c.collected = true;
+                    }
+                }
+                if (c.collected) collectedCount++;
+            });
+
+            scoreDisplay.textContent = `CRISTAUX : ${collectedCount}/${crystals.length}`;
+
+            if (collectedCount === crystals.length) {
+                portalExit.active = true;
+            }
+
+            // Victoire portail
+            if (portalExit.active &&
+                player.x < portalExit.x + portalExit.width &&
+                player.x + player.width > portalExit.x &&
+                player.y < portalExit.y + portalExit.height &&
+                player.y + player.height > portalExit.y
+            ) {
+                gameState = 'VICTORY';
+                endMenu.classList.remove('hidden');
+            }
+        }
+
+        // Dessin style NES Pixel Art
+        function drawCinematic() {
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+            // Bureau NES
+            ctx.fillStyle = '#262626';
+            ctx.fillRect(160, 220, 320, 100);
+            ctx.fillStyle = '#404040';
+            ctx.fillRect(280, 150, 80, 70);
+
+            // Aaron Pixel
+            ctx.fillStyle = '#34d399';
+            ctx.fillRect(305, 175, 30, 45);
+            ctx.fillStyle = '#fde047';
+            ctx.fillRect(310, 160, 20, 20);
+
+            // Portail
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(440, 150, 40, 90);
+        }
+
+        function drawGame() {
+            let cameraX = player.x - VIRTUAL_WIDTH / 3;
+            if (cameraX < 0) cameraX = 0;
+            if (cameraX > 1560) cameraX = 1560;
+
+            ctx.save();
+            ctx.translate(-cameraX, 0);
+
+            // Ciel et Forêt NES
+            ctx.fillStyle = '#040d1a';
+            ctx.fillRect(cameraX, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+            // Étoiles de fond
+            ctx.fillStyle = '#38bdf8';
+            for (let i = 0; i < 30; i++) {
+                ctx.fillRect((i * 70) % 2000, (i * 30) % 200, 2, 2);
+            }
+
+            // Plateformes pixel
+            platforms.forEach(p => {
+                ctx.fillStyle = '#065f46';
+                ctx.fillRect(p.x, p.y, p.width, p.height);
+                ctx.fillStyle = '#34d399';
+                ctx.fillRect(p.x, p.y, p.width, 4);
+            });
+
+            // Cristaux
+            crystals.forEach(c => {
+                if (!c.collected) {
+                    ctx.fillStyle = '#38bdf8';
+                    ctx.fillRect(c.x - 4, c.y - 6, 8, 12);
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(c.x - 2, c.y - 3, 4, 6);
+                }
+            });
+
+            // Portail de sortie
+            if (portalExit.active) {
+                ctx.fillStyle = '#34d399';
+                ctx.fillRect(portalExit.x, portalExit.y, portalExit.width, portalExit.height);
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(portalExit.x + 8, portalExit.y + 10, 16, 60);
+            } else {
+                ctx.fillStyle = '#064e3b';
+                ctx.fillRect(portalExit.x, portalExit.y, portalExit.width, portalExit.height);
+            }
+
+            // Aaron (Personnage mignon style NES redessiné)
+            ctx.save();
+            // Corps chemise verte
+            ctx.fillStyle = '#10b981';
+            ctx.fillRect(player.x + 3, player.y + 10, 14, 14);
+            // Tête blonde avec lunettes
+            ctx.fillStyle = '#fde047';
+            ctx.fillRect(player.x + 2, player.y + 2, 16, 10);
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(player.x + 5, player.y + 5, 10, 4); // Lunettes
+            ctx.restore();
+
+            ctx.restore();
+        }
+
+        function loop() {
+            requestAnimationFrame(loop);
+            ctx.clearRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+            if (gameState === 'MENU') {
+                // Rien sur le canvas du fond
+            } else if (gameState === 'CINEMATIC') {
+                drawCinematic();
+            } else if (gameState === 'PLAYING') {
+                updateGame();
+                drawGame();
+            }
+        }
+
+        loop();
+    </script>
+
+</body>
+</html>
