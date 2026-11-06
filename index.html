@@ -83,93 +83,41 @@
   <!-- Contenu Principal -->
   <main class="max-w-6xl mx-auto px-6 py-8 flex-1 w-full">
 
-    <!-- Vue 1 : Bibliothèque de jeux -->
+    <!-- Section Unique : Bibliothèque de jeux -->
     <section id="view-biblio" class="space-y-8">
       
-      <!-- Bannière Hero -->
+      <!-- Bannière Hero Simple -->
       <div class="glass-card rounded-3xl p-8 md:p-10 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-white/10">
         <div class="space-y-2 z-10 max-w-xl">
-          <span class="text-xs font-black uppercase tracking-widest text-indigo-400">Catalogue Indépendant</span>
+          <span class="text-xs font-black uppercase tracking-widest text-indigo-400">Plateforme de Jeux HTML5</span>
           <h1 class="text-3xl md:text-4xl font-black text-white tracking-tight leading-tight">
-            Jeux vidéo jouables <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">directement.</span>
+            Sélectionne un jeu et <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">joue immédiatement.</span>
           </h1>
           <p class="text-sm text-slate-400">
-            Retrouvez tous les jeux hébergés dans le dossier <code class="text-indigo-300 bg-indigo-950/80 px-2 py-0.5 rounded font-mono">/Jeux/</code> de notre dépôt GitHub.
+            Tous les jeux HTML ajoutés dans le dossier <code class="text-indigo-300 bg-indigo-950/80 px-2 py-0.5 rounded font-mono">/Jeux/</code> s'affichent automatiquement ici.
           </p>
         </div>
 
         <div class="flex items-center gap-4 z-10">
-          <button onclick="chargerJeuxDossier()" class="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/10 transition flex items-center gap-2">
-            <i class="fa-solid fa-rotate"></i> Scanner /Jeux/
+          <button onclick="chargerJeuxDossier()" class="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs transition flex items-center gap-2 shadow-glow-indigo">
+            <i class="fa-solid fa-rotate"></i> Actualiser les jeux
           </button>
-          <div class="glass-card px-4 py-2.5 rounded-2xl border border-white/10 text-center">
-            <div class="text-[10px] uppercase font-bold text-slate-400">Âge du site</div>
-            <div id="compteur-age" class="text-sm font-mono font-bold text-indigo-400">Calcul...</div>
-          </div>
         </div>
       </div>
 
-      <!-- Filtres -->
-      <div class="flex items-center justify-between flex-wrap gap-4 border-b border-white/10 pb-4">
-        <div class="flex items-center gap-2">
-          <button onclick="filtrerCategorie('tous')" class="px-4 py-2 rounded-xl text-xs font-extrabold bg-indigo-600 text-white transition">
-            Tous les jeux
-          </button>
-        </div>
-        <span class="text-xs font-bold text-slate-400">
-          <i class="fa-solid fa-bolt text-indigo-400 mr-1"></i> Mode fluide activé sur Chromebook
+      <!-- Header Catalogue -->
+      <div class="flex items-center justify-between border-b border-white/10 pb-4">
+        <h2 class="text-xl font-black text-white flex items-center gap-2">
+          <i class="fa-solid fa-gamepad text-indigo-400"></i> Vos Jeux Disponibles
+        </h2>
+        <span class="text-xs font-bold text-slate-400" id="jeux-count">
+          0 jeu détecté
         </span>
       </div>
 
       <!-- Grille des jeux -->
       <div id="games-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Les cartes de jeux sont injectées par JavaScript -->
-      </div>
-    </section>
-
-    <!-- Vue 2 : Launcher Chromebook -->
-    <section id="view-apps" class="hidden space-y-8">
-      <div class="glass-card rounded-3xl p-8 border border-white/10 space-y-6 max-w-2xl mx-auto">
-        <div class="flex items-center gap-4">
-          <div class="w-14 h-14 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-2xl">
-            <i class="fa-solid fa-laptop"></i>
-          </div>
-          <div>
-            <h2 class="text-2xl font-black text-white">Launcher Chromebook (ChromeOS)</h2>
-            <p class="text-xs text-slate-400">Installez l'application native directement depuis Chrome.</p>
-          </div>
-        </div>
-
-        <div class="space-y-4 text-sm text-slate-300">
-          <p>Pour ajouter Nirrox Games comme une application indépendante dans votre barre des tâches :</p>
-          <ol class="list-decimal list-inside space-y-2 text-xs text-slate-400 bg-white/5 p-4 rounded-2xl border border-white/5">
-            <li>Consultez cette page depuis votre Chromebook ou le navigateur Chrome.</li>
-            <li>Cliquez sur l'icône d'installation dans la barre d'adresse (<i class="fa-solid fa-download mx-1"></i>).</li>
-            <li>Validez pour l'ajouter à vos applications ChromeOS !</li>
-          </ol>
-        </div>
-      </div>
-    </section>
-
-    <!-- Vue 3 : À propos -->
-    <section id="view-apropos" class="hidden space-y-8">
-      <div class="glass-card rounded-3xl p-8 border border-white/10 space-y-6 max-w-2xl mx-auto">
-        <h2 class="text-2xl font-black text-white">À propos de Nirrox Games</h2>
-        <p class="text-sm text-slate-400 leading-relaxed">
-          Nirrox Games est un projet indépendant conçu pour regrouper et partager des jeux vidéo Web fluides et instantanés.
-        </p>
-
-        <div class="p-6 rounded-2xl bg-indigo-950/40 border border-indigo-500/20 space-y-3">
-          <h3 class="font-bold text-white text-sm flex items-center gap-2">
-            <i class="fa-brands fa-discord text-indigo-400"></i> Rejoindre la communauté
-          </h3>
-          <p class="text-xs text-slate-400">
-            Des questions, des suggestions ou envie de proposer vos propres créations ? Contactez-nous directement sur Discord !
-          </p>
-          <a href="https://discord.gg/vhmXpuRUa" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#5865F2] hover:bg-[#4752C4] text-white font-extrabold text-xs transition shadow-lg">
-            Rejoindre notre Discord
-          </a>
-        </div>
       </div>
     </section>
 
@@ -191,46 +139,11 @@
   </div>
 
   <script>
-    // Configurer tes vrais identifiants GitHub ici pour le scan automatique !
-    const GITHUB_REPO_OWNER = "TonPseudoGitHub";
-    const GITHUB_REPO_NAME = "NirroxGames";
+    // Identifiants GitHub pour scanner le dossier /Jeux/
+    const GITHUB_REPO_OWNER = "TonPseudoGitHub"; // Mets ton pseudo GitHub
+    const GITHUB_REPO_NAME = "NirroxGames";      // Mets le nom de ton dépôt
 
     let catalogueJeux = [];
-    let categorieActive = 'tous';
-    const DATE_LANCEMENT = new Date("2026-11-03T19:00:00");
-
-    function changerPage(page) {
-      document.body.setAttribute('data-page', page);
-
-      const navBiblio = document.getElementById("nav-biblio");
-      const navApps = document.getElementById("nav-apps");
-      const navApropos = document.getElementById("nav-apropos");
-
-      if (navBiblio) navBiblio.className = "px-4 py-2 rounded-xl text-xs font-extrabold text-slate-400 hover:text-white transition";
-      if (navApps) navApps.className = "px-4 py-2 rounded-xl text-xs font-extrabold text-slate-400 hover:text-white transition";
-      if (navApropos) navApropos.className = "px-4 py-2 rounded-xl text-xs font-extrabold text-slate-400 hover:text-white transition";
-
-      const viewBiblio = document.getElementById("view-biblio");
-      const viewApps = document.getElementById("view-apps");
-      const viewApropos = document.getElementById("view-apropos");
-
-      if (viewBiblio) viewBiblio.classList.add('hidden');
-      if (viewApps) viewApps.classList.add('hidden');
-      if (viewApropos) viewApropos.classList.add('hidden');
-
-      if (page === 'biblio') {
-        if (navBiblio) navBiblio.className = "px-4 py-2 rounded-xl text-xs font-extrabold bg-white/10 text-white transition";
-        if (viewBiblio) viewBiblio.classList.remove('hidden');
-        afficherBibliotheque();
-      } else if (page === 'apps') {
-        if (navApps) navApps.className = "px-4 py-2 rounded-xl text-xs font-extrabold bg-white/10 text-white transition";
-        if (viewApps) viewApps.classList.remove('hidden');
-      } else if (page === 'apropos') {
-        if (navApropos) navApropos.className = "px-4 py-2 rounded-xl text-xs font-extrabold bg-white/10 text-white transition";
-        if (viewApropos) viewApropos.classList.remove('hidden');
-      }
-      window.scrollTo(0, 0);
-    }
 
     async function chargerJeuxDossier() {
       catalogueJeux = [];
@@ -248,96 +161,88 @@
               const formattedTitle = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
               
               return {
-                id: `custom-${idx}`,
+                id: `game-${idx}`,
                 titre: formattedTitle,
                 fichier: `Jeux/${file.name}`,
-                description: `Jeu HTML5 disponible dans le dossier /Jeux/${file.name}.`,
-                icon: 'fa-gamepad',
-                categorie: 'Mes Jeux',
-                color: 'from-indigo-950 via-slate-900 to-indigo-950',
-                textColor: 'text-indigo-400'
+                nomFichier: file.name
               };
             });
           }
         }
       } catch (err) {
-        console.warn("Dossier /Jeux/ non trouvé ou limite API atteinte.", err);
+        console.warn("Scan GitHub API en attente de configuration", err);
       }
 
-      if (document.body.getAttribute('data-page') === 'biblio') {
-        afficherBibliotheque();
+      // Si le scan API n'a pas encore de réponse, on s'assure d'inclure ultra.html et le dossier local
+      if (catalogueJeux.length === 0) {
+        catalogueJeux = [
+          {
+            id: 'ultra-game',
+            titre: 'Ultra',
+            fichier: 'Jeux/ultra.html',
+            nomFichier: 'ultra.html'
+          }
+        ];
       }
-    }
 
-    function mettreAJourAge() {
-      const el = document.getElementById("compteur-age");
-      if (!el) return;
-      const diff = new Date() - DATE_LANCEMENT;
-      if (diff < 0) { el.textContent = "Lancement imminent"; return; }
-
-      const j = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const m = Math.floor((diff / (1000 * 60)) % 60);
-      const s = Math.floor((diff / 1000) % 60);
-      el.textContent = `${j}j ${h}h ${m}m ${s}s`;
-    }
-    setInterval(mettreAJourAge, 1000);
-
-    function filtrerCategorie(cat) {
-      categorieActive = cat;
       afficherBibliotheque();
     }
 
     function afficherBibliotheque() {
       const container = document.getElementById("games-grid-container");
+      const countEl = document.getElementById("jeux-count");
       if (!container) return;
 
-      const jeuxFitres = categorieActive === 'tous' 
-        ? catalogueJeux 
-        : catalogueJeux.filter(j => j.categorie.toLowerCase() === categorieActive.toLowerCase());
+      if (countEl) countEl.textContent = `${catalogueJeux.length} jeu(x) disponible(s)`;
 
-      if (jeuxFitres.length === 0) {
+      if (catalogueJeux.length === 0) {
         container.innerHTML = `
           <div class="col-span-full p-12 text-center glass-card rounded-3xl border border-dashed border-white/10 space-y-4">
             <div class="w-16 h-16 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto text-2xl">
               <i class="fa-solid fa-folder-open"></i>
             </div>
-            <h3 class="text-xl font-bold text-white">Aucun jeu trouvé dans le dossier /Jeux/</h3>
+            <h3 class="text-xl font-bold text-white">Aucun fichier HTML trouvé dans /Jeux/</h3>
             <p class="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-              Ajoutez simplement vos fichiers <strong>.html</strong> dans le dossier <strong>/Jeux/</strong> de votre dépôt GitHub. Ils apparaîtront automatiquement ici !
+              Déposez vos jeux (ex: <code>ultra.html</code>) dans le dossier <strong>/Jeux/</strong> sur votre GitHub.
             </p>
-            <button onclick="chargerJeuxDossier()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition inline-flex items-center gap-2">
-              <i class="fa-solid fa-rotate"></i> Recharger le dossier
-            </button>
           </div>
         `;
         return;
       }
 
-      container.innerHTML = jeuxFitres.map(jeu => `
+      const couleursBadge = [
+        'from-indigo-600 to-indigo-900',
+        'from-purple-600 to-purple-900',
+        'from-blue-600 to-blue-900',
+        'from-emerald-600 to-emerald-900'
+      ];
+
+      container.innerHTML = catalogueJeux.map((jeu, idx) => {
+        const bgGrad = couleursBadge[idx % couleursBadge.length];
+        return `
         <div class="glass-card rounded-3xl overflow-hidden flex flex-col group relative border border-white/10 hover:border-indigo-500/40 transition duration-300">
-          <div class="h-44 bg-gradient-to-tr ${jeu.color} relative p-6 flex items-center justify-center overflow-hidden">
-            <i class="fa-solid ${jeu.icon} text-6xl ${jeu.textColor}/80 group-hover:scale-110 transition duration-500"></i>
-            <span class="absolute top-4 left-4 bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
-              ${jeu.categorie}
-            </span>
+          <div class="h-40 bg-gradient-to-tr ${bgGrad} relative p-6 flex flex-col justify-between overflow-hidden">
+            <div class="flex items-center justify-between z-10">
+              <span class="bg-black/40 backdrop-blur-md border border-white/10 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                Jeu HTML5
+              </span>
+              <span class="text-[11px] font-mono text-white/70 bg-black/30 px-2 py-0.5 rounded">
+                ${jeu.nomFichier}
+              </span>
+            </div>
+            <i class="fa-solid fa-gamepad text-6xl text-white/10 absolute -bottom-2 -right-2 group-hover:scale-125 transition duration-500"></i>
+            <h3 class="font-black text-2xl text-white z-10 drop-shadow-md">${jeu.titre}</h3>
           </div>
           
-          <div class="p-6 flex-1 flex flex-col justify-between space-y-5">
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between">
-                <h3 class="font-black text-xl text-white group-hover:text-indigo-400 transition">${jeu.titre}</h3>
-                <span class="text-[10px] font-mono text-slate-500 truncate max-w-[110px]">${jeu.fichier}</span>
-              </div>
-              <p class="text-xs text-slate-400 leading-relaxed">${jeu.description}</p>
-            </div>
+          <div class="p-6 flex-1 flex flex-col justify-between space-y-4">
+            <p class="text-xs text-slate-400">Lancement instantané du fichier <code class="text-indigo-300">${jeu.fichier}</code> dans le launcher.</p>
 
             <button onclick="lancerFichierJeu('${jeu.fichier}', '${jeu.titre}')" class="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs transition uppercase tracking-wider flex items-center justify-center gap-2 shadow-glow-indigo">
-              <i class="fa-solid fa-play"></i> Jouer maintenant
+              <i class="fa-solid fa-play"></i> Lancer le jeu
             </button>
           </div>
         </div>
-      `).join('');
+      `}).join('');
     }
 
     function lancerFichierJeu(urlFichier, titre) {
@@ -346,7 +251,7 @@
       if (title) title.textContent = titre;
 
       if (container) {
-        container.innerHTML = `<iframe src="${urlFichier}" class="w-full h-full min-h-[500px] rounded-2xl border-0" allow="fullscreen"></iframe>`;
+        container.innerHTML = `<iframe src="${urlFichier}" class="w-full h-full min-h-[550px] rounded-2xl border-0" allow="fullscreen"></iframe>`;
       }
 
       const modal = document.getElementById("modal-game");
@@ -362,7 +267,6 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       chargerJeuxDossier();
-      changerPage('biblio');
     });
   </script>
 </body>
