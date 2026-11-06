@@ -1,7 +1,62 @@
-<!-- ... existing code ... -->
-<body class="min-h-screen flex flex-col pb-20 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Nirrox Games - Plateforme de Jeux</title>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+              950: '#09090b',
+            }
+          },
+          boxShadow: {
+            'glow-indigo': '0 0 25px -5px rgba(99, 102, 241, 0.4)',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #09090b;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
 
-  <!-- En-tête / Header Simple (Sans onglets) -->
+    .glass-card {
+      background: rgba(18, 18, 22, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col pb-12 text-slate-100 antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- En-tête / Header -->
   <header class="sticky top-0 z-50 bg-black/60 backdrop-blur-xl border-b border-white/10">
     <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
       
@@ -29,7 +84,7 @@
     <!-- Section Unique : Bibliothèque de jeux -->
     <section id="view-biblio" class="space-y-8">
       
-      <!-- Bannière Hero Simple -->
+      <!-- Bannière Hero -->
       <div class="glass-card rounded-3xl p-8 md:p-10 relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-white/10">
         <div class="space-y-2 z-10 max-w-xl">
           <span class="text-xs font-black uppercase tracking-widest text-indigo-400">Bibliothèque</span>
@@ -80,15 +135,15 @@
       </div>
       <!-- Container Responsive Iframe -->
       <div id="game-canvas-container" class="w-full flex-1 bg-black relative overflow-hidden">
-        <!-- Iframe dynamiquement injectée avec 100% hauteur/largeur -->
+        <!-- Iframe dynamiquement injectée -->
       </div>
     </div>
   </div>
 
   <script>
-    // Identifiants GitHub pour scanner le dossier /Jeux/
-    const GITHUB_REPO_OWNER = "TonPseudoGitHub"; // Mets ton pseudo GitHub
-    const GITHUB_REPO_NAME = "NirroxGames";      // Mets le nom de ton dépôt
+    // Configuration de ton dépôt GitHub (remplace par ton pseudo et le nom du repo si besoin)
+    const GITHUB_REPO_OWNER = "TonPseudoGitHub";
+    const GITHUB_REPO_NAME = "NirroxGames";
 
     let catalogueJeux = [];
 
@@ -120,7 +175,7 @@
         console.warn("Scan API GitHub", err);
       }
 
-      // Inclus le fallback local ultra.html si aucun autre fichier scanné
+      // Si le scan API n'a rien renvoyé ou est en local, on force la présence de ultra.html
       if (catalogueJeux.length === 0) {
         catalogueJeux = [
           {
@@ -183,7 +238,6 @@
       if (title) title.textContent = titre;
 
       if (container) {
-        // Redimensionnement fluide à 100% de la fenêtre modale
         container.innerHTML = `<iframe src="${urlFichier}" class="absolute inset-0 w-full h-full border-0" allow="fullscreen; autoplay; gamepad"></iframe>`;
       }
 
