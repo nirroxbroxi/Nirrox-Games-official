@@ -1,11 +1,11 @@
 /**
- * Nirrox Games - Script principal
+ * Nirrox Games - Script principal (main.js)
  * Gestion du scan automatique du dossier /Jeux/ et de l'affichage des jeux.
  */
 
-// Configuration de ton dépôt GitHub (remplace par ton pseudo et le nom exact de ton dépôt sur GitHub)
-const GITHUB_REPO_OWNER = "TonPseudoGitHub";
-const GITHUB_REPO_NAME = "NirroxGames";
+// Configuration de ton dépôt GitHub
+const GITHUB_REPO_OWNER = "nirroxbroxi";
+const GITHUB_REPO_NAME = "Nirrox-Games-official";
 
 let catalogueJeux = [];
 
@@ -40,7 +40,7 @@ async function chargerJeuxDossier() {
     console.warn("Erreur lors de la récupération des jeux via GitHub API :", err);
   }
 
-  // Si le scan API ne renvoie rien (ex: en local ou mauvais identifiants), on met au moins ultra.html
+  // Si l'API GitHub ne renvoie rien (ex: en local ou dossier pas encore indexé), on charge ultra.html en secours
   if (catalogueJeux.length === 0) {
     catalogueJeux = [
       {
