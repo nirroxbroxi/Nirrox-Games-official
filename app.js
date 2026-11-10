@@ -3,9 +3,12 @@
  * Scan automatique du dossier /Jeux/ et affichage des jeux.
  */
 
-// Configuration de ton dépôt GitHub
-const GITHUB_REPO_OWNER = "nirroxbroxi";
-const GITHUB_REPO_NAME = "Nirrox-Games-official";
+// Configuration du dépôt GitHub (sécurisée contre la redéclaration)
+window.GITHUB_REPO_OWNER = window.GITHUB_REPO_OWNER || "nirroxbroxi";
+window.GITHUB_REPO_NAME = window.GITHUB_REPO_NAME || "Nirrox-Games-official";
+
+const GITHUB_REPO_OWNER = window.GITHUB_REPO_OWNER;
+const GITHUB_REPO_NAME = window.GITHUB_REPO_NAME;
 
 let catalogueJeux = [];
 
